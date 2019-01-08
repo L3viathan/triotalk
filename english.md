@@ -105,5 +105,7 @@ async with trio.open_nursery() as nursery:
     ...
 ```
 
+====
+
 - Tasks _have to_ run in nurseries* **
 - Tasks started in a nursery are done before the nursery is closed.
