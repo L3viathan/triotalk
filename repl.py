@@ -80,6 +80,11 @@ def dh(something):
     elif something == "d":
         markdown.renderer.redraw()
         return show()
+    elif something == "c":
+        print("\n"*markdown.renderer.rows)
+        return None
+    elif something == "q":
+        sys.exit()
     elif something == "f":
         return ask_slidenr(len(slides))
     elif isinstance(something, tuple):
@@ -91,4 +96,4 @@ def dh(something):
 
 sys.displayhook = dh
 
-l, r, f, n, p, d = "lrfnpd"
+l, r, f, n, p, d, c, q = "lrfnpdcq"
