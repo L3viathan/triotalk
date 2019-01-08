@@ -1,6 +1,6 @@
 # Trio
 
-> async programming for humans and snake people
+async programming for humans and snake people
 
 > P.S. your API is a user interface – **Kenneth Reitz**
 

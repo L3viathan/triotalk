@@ -5,12 +5,16 @@ from markdown import markdown
 
 old_dh = sys.displayhook
 
-state = {"language": "english", "slide": -1}
+state = {"language": "english", "slide": 0}
 mode = "normal"
 
 bindings = {"l": ("language", ["german", "english"])}
-with open("slides.md") as f:
-    slides = f.read().split("\n====\n")
+
+def load_slides():
+    global slides
+    with open(f"{state['language']}.md") as f:
+        slides = f.read().split("\n====\n")
+load_slides()
 
 
 def show():
@@ -21,7 +25,7 @@ def show():
     print(f"[{state['slide']+1}/{len(slides)}]".rjust(markdown.renderer.columns))
 
 
-def ask(key, choices, phrase=None):
+def ask(key, choices, phrase=None, char=None):
     global mode
     if phrase:
         print(phrase)
@@ -34,6 +38,9 @@ def ask(key, choices, phrase=None):
         print(f"Switching {key} to {choice}")
         state[key] = choice
         mode = "normal"
+        if char == "l":
+            load_slides()
+            show()
 
     mode = answer
 
@@ -58,17 +65,19 @@ def ask_slidenr(total):
 
 
 def dh(something):
-    if isinstance(mode, Callable):
+    if not isinstance(something, Hashable):
+        return old_dh(something)
+    elif isinstance(mode, Callable):
         return mode(something)
-    elif isinstance(something, Hashable) and something in bindings:
-        return ask(*bindings[something])
+    elif something in bindings:
+        return ask(*bindings[something], char=something)
     elif something is Ellipsis or something == "n":
         state["slide"] += 1
         return show()
     elif something == "p":
         state["slide"] -= 1
         return show()
-    elif something == "r":
+    elif something == "d":
         markdown.renderer.redraw()
         return show()
     elif something == "f":
@@ -82,4 +91,4 @@ def dh(something):
 
 sys.displayhook = dh
 
-l, r, f, n, p = "lrfnp"
+l, r, f, n, p, d = "lrfnpd"
