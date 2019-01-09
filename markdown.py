@@ -38,7 +38,10 @@ class TerminalRenderer(mistune.Renderer):
 
     def header(self, text, level, raw=None):
         for size in [72, 48, 24, 20, 18, 17, 16, 15, 14, 13, 12, 11, 10]:
-            myfont = ImageFont.truetype("Verdana", size)
+            try:
+                myfont = ImageFont.truetype("Verdana", size)
+            except OSError:
+                myfont = ImageFont.truetype("DroidSansMono", size)
             size = myfont.getsize(text)
             img = Image.new("L", size, "black")
             draw = ImageDraw.Draw(img)
