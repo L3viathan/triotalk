@@ -4,7 +4,7 @@ async programming for humans and snake people
 
 > P.S. your API is a user interface – **Kenneth Reitz**
 
-----
+====
 
 Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan](), solute
 
@@ -112,7 +112,26 @@ async with trio.open_nursery() as nursery:
 
 ====
 
-first example: ????
+What if you have to start tasks dynamically?
+
+====
+
+```exec
+async def starter(nursery):
+    for i in range(7):
+        nursery.start_soon(sleepy, i)
+    print("starter done")
+
+async def main():
+    async with trio.open_nursery() as nursery:
+        nursery.start_soon(starter, nursery)
+    print("all done")
+```
+
+====
+
+- `sleepy` tasks get attached to the nursery, not to `starter`
+- `starter` can quit, `main` can **not**
 
 ====
 
@@ -120,13 +139,50 @@ first example: ????
 
 ====
 
-# checkpoints
-
-# timeouts...
+- tasks can be cancelled at any time*
+- example: timeouts
 
 ====
+
+```exec
+async def main():
+    with trio.move_on_after(3):
+        async with trio.open_nursery() as nursery:
+            nursery.start_soon(sleepy, 10)
+    print("All done")
+```
+
+- also possible: `trio.fail_after`, `trio.move_on_at`
+- also possible: nursery.cancel_scope.cancel()
+
+====
+
+- Cancellations raise an exception inside all child tasks
+- Cancellations are only possible at checkpoints
+
+====
+
+# checkpoints
+
+====
+
+- places in the code where tasks can get cancelled
+- places in the code where task switching happens
+
+====
+
+- any place where we `await` a "true" asynchronous function, i.e. any `await`ing of trio.something
+- Manually inserting a checkpoint: `await trio.sleep(0)`
+
+====
+No, the problem with the GIL is that it’s a lousy deal: we give up on using multiple cores, and in exchange we get… almost all the same challenges and mind-bending bugs that come with real parallel programming, and – to add insult to injury – pretty poor scalability. Threads in Python just aren’t that appealing.
+
+====
+
+# synchronization primitives (channels)
 
 # exceptions
 
 ====
 second example: spider?
+
