@@ -325,8 +325,63 @@ async def main():
 
 ====
 
-second example: spider? tcp echo?
+# DEMO
 
+====
+
+```exec
+async def handler(conn):
+    while True:
+        data = await conn.receive_some(1024)
+        await conn.send_all(data)
+
+async def main():
+    async with trio.open_nursery() as nursery:
+        nursery.start_soon(trio.serve_tcp, handler, 1234)
+```
+====
+
+```exec
+async def handler(conn):
+    ip, port, *_ = conn.socket.getpeername()
+    print(f"[{ip}]:{port} opened connection")
+    while True:
+        data = await conn.receive_some(1024)
+        print(f"[{ip}]:{port} sent data")
+        await conn.send_all(data)
+```
+====
+
+```exec
+async def handler(conn):
+    ip, port, *_ = conn.socket.getpeername()
+    print(f"[{ip}]:{port} opened connection")
+    while True:
+        data = await conn.receive_some(1024)
+        if not data:  # ctrl-d
+            print(f"connection closed from [{ip}]:{port}, exiting")
+            return
+        print(f"[{ip}]:{port} sent data")
+        await conn.send_all(data)
+```
+====
+
+```exec
+async def handler(conn):
+    ip, port, *_ = conn.socket.getpeername()
+    print(f"[{ip}]:{port} opened connection")
+    while True:
+        with trio.move_on_after(5) as scope:
+            data = await conn.receive_some(1024)
+            if not data:  # ctrl-d
+                print(f"connection closed from [{ip}]:{port}, exiting")
+                return
+            print(f"[{ip}]:{port} sent data")
+            await conn.send_all(data)
+        if scope.cancelled_caught:
+            print(f"timeout for [{ip}]:{port}, exiting")
+            return
+```
 ====
 
 # more
