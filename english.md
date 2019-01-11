@@ -99,6 +99,106 @@ async def main():
 
 ====
 
+Edsger W. Dijkstra (1968): Go To Statement Considered Harmful
+
+- Control flow primitives in early programming languages: if, loops, function calls, (real) goto
+- all except goto can be seen as black boxes, goto ***can not***
+
+====
+
+```
+   if       loop
+   |          |<--\
+/--+--\       []  |
+|     |       +---/
+[]    []      |
+\--+--/       V
+   |
+   V
+```
+====
+```
+fn call   sequential
+|            |
+\-->[]       |
+    /        |
+/--/         |
+|            |
+V            V
+```
+====
+```
+goto
+ |
+ \---> []
+```
+
+====
+
+- no idea if we will return there
+- *goto* makes it impossible to reason about
+
+====
+
+**Spoiler alert:** Dijkstra won
+
+- even languages with `goto` (C, C#, Golang) have tamed it
+- removal of goto allows new constructs to get spawned...
+
+====
+```
+with foo:
+    do stuff
+```
+
+====
+- what would happen if we jumped out of the with block?
+- what if we jumped _inside_?
+====
+
+# go
+
+====
+
+- the `go` statement, also known as `pthread_create`, `spawn`, `threading.Thread`, `asyncio.create_task`, ...
+
+====
+```
+go
+ |
+ +---> []
+ |
+ V
+```
+====
+- It's a goto in disguise!
+- Hard to reason about (yes, I know about `join`)
+- Break error handling
+- Break abstraction
+====
+```
+with open(some_file) as f:
+    asyncio.create_task(do_something(f))
+    ...
+```
+
+====
+Nathaniel J. Smith (2018): Go Statement Considered Harmful
+
+====
+```
+      nursery
+         |
+    /----+----\
+    |    |    |
+    []   []   []
+    |    |    |
+    \----+----/
+         |
+         V
+```
+====
+
 ```
 async with trio.open_nursery() as nursery:
     nursery.start_soon(...)
@@ -175,14 +275,67 @@ async def main():
 - Manually inserting a checkpoint: `await trio.sleep(0)`
 
 ====
-No, the problem with the GIL is that it’s a lousy deal: we give up on using multiple cores, and in exchange we get… almost all the same challenges and mind-bending bugs that come with real parallel programming, and – to add insult to injury – pretty poor scalability. Threads in Python just aren’t that appealing.
+
+# Synchronization
 
 ====
 
-# synchronization primitives (channels)
+- `send, receive = trio.open_memory_channel(3)`
+- alternatives: `trio.Event`, `trio.CapacityLimiter`, `trio.Semaphore`, `trio.Lock`, ...
+
+====
+
+```exec
+async def sender(chan):
+    async with chan:
+        for i in range(3):
+            await chan.send(i)
+            print("sent", i)
+```
+====
+
+```exec
+async def receiver(chan):
+    async with chan:
+        async for msg in chan:
+            print("received", msg)
+```
+
+====
+
+```exec
+async def main():
+    async with trio.open_nursery() as nursery:
+        send, receive = trio.open_memory_channel(2)
+        nursery.start_soon(sender, send)
+        await trio.sleep(2)
+        nursery.start_soon(receiver, receive)
+```
+
+====
 
 # exceptions
 
 ====
-second example: spider?
 
+- exceptions just work properly, and never get thrown away.
+- "simultanously" raised exceptions raise a `trio.MultiError`.
+
+====
+
+second example: spider? tcp echo?
+
+====
+
+# more
+
+- I/O: TCP, file system, sockets, subprocesses, signals
+- task-local storage (with `contextvars`)
+- thread support
+- `trio.testing`
+- `trio.hazmat`
+
+====
+
+- https://vorpus.org/blog/
+No, the problem with the GIL is that it’s a lousy deal: we give up on using multiple cores, and in exchange we get… almost all the same challenges and mind-bending bugs that come with real parallel programming, and – to add insult to injury – pretty poor scalability. Threads in Python just aren’t that appealing.
