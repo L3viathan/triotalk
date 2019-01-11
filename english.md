@@ -37,7 +37,7 @@ Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viat
 
 # async functions
 
-```
+```python
 async def double(x):
     return x*2
 ```
@@ -55,7 +55,7 @@ async def double(x):
 
 ====
 
-```
+```python
 import trio
 
 async def double(x):
@@ -146,9 +146,9 @@ goto
 - removal of goto allows new constructs to get spawned...
 
 ====
-```
+```python
 with foo:
-    do stuff
+    do_stuff()
 ```
 
 ====
@@ -176,7 +176,7 @@ go
 - Breaks error handling
 - Breaks abstraction
 ====
-```
+```python
 with open(some_file) as f:
     asyncio.create_task(do_something(f))
     ...
@@ -199,7 +199,7 @@ Nathaniel J. Smith (2018): Go Statement Considered Harmful
 ```
 ====
 
-```
+```python
 async with trio.open_nursery() as nursery:
     nursery.start_soon(...)
     ...
@@ -350,6 +350,11 @@ async def handler(conn):
         print(f"[{ip}]:{port} sent data")
         await conn.send_all(data)
 ```
+```exechidden
+async def main():
+    async with trio.open_nursery() as nursery:
+        nursery.start_soon(trio.serve_tcp, handler, 1234)
+```
 ====
 
 ```exec
@@ -363,6 +368,11 @@ async def handler(conn):
             return
         print(f"[{ip}]:{port} sent data")
         await conn.send_all(data)
+```
+```exechidden
+async def main():
+    async with trio.open_nursery() as nursery:
+        nursery.start_soon(trio.serve_tcp, handler, 1234)
 ```
 ====
 
@@ -381,6 +391,11 @@ async def handler(conn):
         if scope.cancelled_caught:
             print(f"timeout for [{ip}]:{port}, exiting")
             return
+```
+```exechidden
+async def main():
+    async with trio.open_nursery() as nursery:
+        nursery.start_soon(trio.serve_tcp, handler, 1234)
 ```
 ====
 

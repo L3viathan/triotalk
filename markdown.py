@@ -4,12 +4,18 @@ import re
 import colorful
 import mistune
 from PIL import Image, ImageDraw, ImageFont
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import TerminalTrueColorFormatter as TerminalFormatter
 import numpy as np
 
 
 colorful.use_style("solarized")
 
 ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
+
+lexer = get_lexer_by_name("python3", stripall=True)
+formatter = TerminalFormatter(style="solarizeddark")
 
 
 def nonempty(text):
@@ -105,6 +111,8 @@ class TerminalRenderer(mistune.Renderer):
                 setattr(builtins, key, value)
         if lang and lang.endswith("hidden"):
             return ""
+        elif lang:
+            return highlight(text, lexer, formatter)
         else:
             return text
 
