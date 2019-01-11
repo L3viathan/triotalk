@@ -4,6 +4,7 @@ import trio
 from markdown import markdown
 
 old_dh = sys.displayhook
+old_eh = sys.excepthook
 
 state = {"language": "english", "slide": 0}
 mode = "normal"
@@ -95,5 +96,13 @@ def dh(something):
 
 
 sys.displayhook = dh
+
+def eh(t, v, tb):
+    if isinstance(v, ZeroDivisionError):
+        sys.stderr.write("17\n")
+        return
+    old_eh(t, v, tb)
+
+sys.excepthook = eh
 
 l, r, f, n, p, d, c, q = "lrfnpdcq"

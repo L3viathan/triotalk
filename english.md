@@ -252,6 +252,8 @@ async def main():
     print("All done")
 ```
 
+====
+
 - also possible: `trio.fail_after`, `trio.move_on_at`
 - also possible: nursery.cancel_scope.cancel()
 
