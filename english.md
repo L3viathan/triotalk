@@ -173,8 +173,8 @@ go
 ====
 - It's a goto in disguise!
 - Hard to reason about (yes, I know about `join`)
-- Break error handling
-- Break abstraction
+- Breaks error handling
+- Breaks abstraction
 ====
 ```
 with open(some_file) as f:
@@ -394,5 +394,9 @@ async def handler(conn):
 
 ====
 
-- https://vorpus.org/blog/
-No, the problem with the GIL is that it’s a lousy deal: we give up on using multiple cores, and in exchange we get… almost all the same challenges and mind-bending bugs that come with real parallel programming, and – to add insult to injury – pretty poor scalability. Threads in Python just aren’t that appealing.
+- [https://vorpus.org/blog/]()
+- [https://trio.readthedocs.io]()
+
+====
+
+# fin

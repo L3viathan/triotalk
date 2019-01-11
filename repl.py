@@ -22,7 +22,7 @@ def show():
     nr = state["slide"]
     if nr >= len(slides):
         state["slide"] -= 1
-    print(markdown(slides[state["slide"]]))
+    print(markdown(slides[state["slide"]]).rstrip())
     print(f"[{state['slide']+1}/{len(slides)}]".rjust(markdown.renderer.columns))
 
 
