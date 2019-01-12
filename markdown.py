@@ -63,7 +63,7 @@ class TerminalRenderer(mistune.Renderer):
             )
             if (
                 max(len(line) for line in lines) > self.columns
-                or len(lines) > self.rows
+                or len(lines) > (self.rows-2)
             ):
                 continue
             return "\n".join(lines) + "\n"
@@ -78,7 +78,7 @@ class TerminalRenderer(mistune.Renderer):
         return body
 
     def list_item(self, text):
-        return "· {}\n".format(text)
+        return "• {}\n".format(text)
 
     def block_quote(self, text):
         return "> {}\n".format("\n  ".join(self.wrapped(text, modifier=-2)))
