@@ -78,6 +78,9 @@ def dh(something):
     elif something == "p":
         state["slide"] -= 1
         return show()
+    elif something == "t":
+        print("+"*84)
+        return None
     elif something == "d":
         markdown.renderer.redraw()
         return show()
@@ -105,4 +108,4 @@ def eh(t, v, tb):
 
 sys.excepthook = eh
 
-l, r, f, n, p, d, c, q = "lrfnpdcq"
+l, r, f, n, p, d, c, q, t = "lrfnpdcqt"
