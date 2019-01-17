@@ -1,6 +1,6 @@
 # Trio
 
-async-Programmierung für Menschen und Schlangenliebhaber
+async-Programmierung für Menschen und Schlangenfreunde
 
 > P.S. deine API ist ein Userinterface – **Kenneth Reitz**
 
