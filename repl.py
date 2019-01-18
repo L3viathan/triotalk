@@ -9,7 +9,7 @@ old_eh = sys.excepthook
 state = {"language": "english", "slide": 0}
 mode = "normal"
 
-bindings = {"l": ("language", ["german", "english"])}
+bindings = {"l": ("language", ["german", "english", "romanian"])}
 
 def load_slides():
     global slides
