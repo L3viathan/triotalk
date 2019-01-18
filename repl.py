@@ -79,7 +79,7 @@ def dh(something):
         state["slide"] -= 1
         return show()
     elif something == "t":
-        print("+"*84)
+        print("+"*90)
         return None
     elif something == "d":
         markdown.renderer.redraw()
