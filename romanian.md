@@ -6,7 +6,7 @@ programare async pentru oameni și prieteni de șarpe
 
 ====
 
-Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan](), solute
+Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan]()
 
 ====
 

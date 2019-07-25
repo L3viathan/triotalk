@@ -6,7 +6,7 @@ async programming for humans and snake people
 
 ====
 
-Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan](), solute
+Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan]()
 
 ====
 
@@ -60,20 +60,18 @@ async def double(x):
 
 ====
 
-```python
+```exec
 import trio
 
 async def double(x):
     return 2 * x
 
+```
+```python
 trio.run(double, 3)  # returns 6
 ```
 
 ====
-
-```exechidden
-import trio
-```
 
 ```exec
 async def sleepy(seconds):

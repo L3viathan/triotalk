@@ -6,7 +6,7 @@ async-Programmierung für Menschen und Schlangenfreunde
 
 ====
 
-Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan](), solute
+Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan]()
 
 ====
 
