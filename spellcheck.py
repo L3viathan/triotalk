@@ -7,25 +7,13 @@ import ipdb
 
 old = builtins.__build_class__
 
-# TODO: recursive application to code objects
 # TODO: check if closures work
 CodeType = type((lambda: 0).__code__)
 
 
 def new(body, name, *args, **kwargs):
     bases = args
-    print(globals().keys())
-    functions = {
-        val: spellcheck(val)
-        for val in body.__code__.co_consts
-        if isinstance(val, CodeType)
-    }
-    body.__code__ = new_code_from_old(
-        body.__code__,
-        co_consts=tuple(
-            functions.get(const, const) for const in body.__code__.co_consts
-        ),
-    )
+    body.__code__ = spellcheck(body.__code__)
     ret = old(body, name, *bases, **kwargs)
     return ret
 
@@ -71,15 +59,26 @@ def spellcheck(code):
         fixed[wrong] = better
         if better not in globals():
             badglobals[code.co_names.index(wrong)] = code.co_varnames.index(better)
-    if fixed:
-        names = tuple(fixed.get(name, name) for name in code.co_names)
-        bytecode = code.co_code
-        for bad, good in badglobals.items():
-            bytecode = code.co_code.replace(
-                ("t" + chr(bad)).encode(), ("|" + chr(good)).encode()
-            )
-        code = new_code_from_old(code, co_names=names, co_code=bytecode)
-    return code
+    names = tuple(fixed.get(name, name) for name in code.co_names)
+    bytecode = code.co_code
+    for bad, good in badglobals.items():
+        # FIXME: make sure we don't cross bytecode boundaries here
+        bytecode = bytecode.replace(
+            ("t" + chr(bad)).encode(), ("|" + chr(good)).encode()
+        )
+    functions = {
+        val: spellcheck(val)
+        for val in code.co_consts
+        if isinstance(val, CodeType)
+    }
+    return new_code_from_old(
+        code,
+        co_consts=tuple(
+            functions.get(const, const) for const in code.co_consts
+        ),
+        co_names=names,
+        co_code=bytecode,
+    )
 
 
 import random
@@ -89,7 +88,7 @@ class Employee:
     def __init__(self, name, title):
         self.name = name
         self.title = tilte
-        self.salary = radnom.randint(1, 10000)
+        eslf.salary = radnom.randint(1, 10000)
 
     def __str__(self):
         return f"<Employee: {self.name}, {self.title} (€{self.salary})>"
