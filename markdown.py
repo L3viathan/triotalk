@@ -15,7 +15,7 @@ colorful.use_style("solarized")
 ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
 
 lexer = get_lexer_by_name("python3", stripall=True)
-formatter = TerminalFormatter(style="solarizeddark")
+formatter = TerminalFormatter(style="monokai")
 
 
 def nonempty(text):

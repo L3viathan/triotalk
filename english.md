@@ -234,3 +234,5 @@ def new(body, name, *args, **kwargs):
 ```
 
 ====
+
+(spelcheck, translate)
