@@ -1,6 +1,5 @@
 import sys
 from collections.abc import Callable, Hashable
-import trio
 from markdown import markdown
 
 old_dh = sys.displayhook
@@ -9,7 +8,7 @@ old_eh = sys.excepthook
 state = {"language": "english", "slide": 0}
 mode = "normal"
 
-bindings = {"l": ("language", ["german", "english", "romanian"])}
+bindings = {"l": ("language", ["german", "english"])}
 
 def load_slides():
     global slides

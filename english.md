@@ -1,432 +1,236 @@
-# Trio
+# Beyond metaclasses
 
-async programming for humans and snake people
-
-> P.S. your API is a user interface – **Kenneth Reitz**
+*The power of \_\_build_class__*
 
 ====
 
-Jonathan Oberländer, [@l3viathan@mastodon.social](), [https://github.com/L3viathan]()
+Metaprogramming: code as data
 
 ====
 
-# Why Trio
+Why?
 
-- Why not async.io/Twisted/curio/...?
-- What makes Trio different?
-
-====
-
-> Trio attempts to distinguish itself with an obsessive focus on **usability** and **correctness**. Concurrency is complicated; we try to make it *easy* to get things *right*.
+- Avoid code duplication
+- Extend Python itself
+- Write pythonic interfaces
+- Give your code magical abilities
 
 ====
 
-# You need...
+Dante's 9 Levels of Metaprogramming Hell
 
-- Reasonably up to date Python
-- Decent knowledge of Python
-
-====
-
-# You don't need...
-
-- Understanding of asyncio
-- Understanding of `async`/`await`
-
-====
-
-# async functions
-
-```python
-async def double(x):
-    return x*2
-```
-
-====
-
-- You have to use `await` to call the function
-- You can only use `await` inside asynchronous functions
+1. decorators
+2. magic methods
+3. metaclasses
+4. overriding builtins
+5. inspect
+6. ast/dis
+7. eval/compile
+8. forbiddenfruit/ctypes
+9. patching CPython
 
 ====
 
 ```
-  _____)      _____)
- /_ ___/     /_ ___/
- / _ \       / _ \
-| (_) |     | (_) |
- \___/ _____ \___/
-      |_____|
-```
-
-====
-
-```exec
-import trio
-
-async def double(x):
-    return 2 * x
-
-```
-```python
-trio.run(double, 3)  # returns 6
-```
-
-====
-
-```exec
-async def sleepy(seconds):
-    print(f"Sleeping for {seconds} seconds")
-    await trio.sleep(seconds)
-    print(f"Slept {seconds} seconds")
+[functionality, magic]
+^                                   patching CPython
+|
+|                  __build_class__
+|           metaclasses                       eval
+|             import hooks
+|                            inspect/dis
+|                       ast
+|
+|                          ctypes
+|                 patching builtins
+|     Magic methods
+|  decorators
+|
++----------------------------------------------> [surprise, complexity]
 ```
 ====
 
-```exec
-async def main():
-    async with trio.open_nursery() as nursery:
-        for i in range(5):
-            nursery.start_soon(sleepy, i)
-        print("Started all tasks")
-    print("All done")
-```
+Some fun examples:
+
+- Hy\[1]; import lisp from python
+- Pypes\[2]; `-(O| input() | str.split | "," | (map, int) | sum | print)`
+- Honestly lots of large libraries: Django, pytest, ...
+
+  
+
+
+\[1]: github.com/hylang/hy
+
+\[2]: github.com/L3viathan/pypes
 
 ====
 
-- Tasks got scheduled in different order (maybe)
-- Tasks ran concurrently
-- `"All done"` gets printed _at the end_.
+## Metaclasses
 
 ====
 
-# nurseries
+some object ∈ some class ∈ some metaclass
 
-====
+Derive from `type` (the default metaclass)
 
-Edsger W. Dijkstra (1968): Go To Statement Considered Harmful
-
-- Control flow primitives in early programming languages: if, loops, function calls, (real) goto
-- all except goto can be seen as black boxes, goto ***can not***
-
-====
-
-```
-   if       loop
-   |          |<--\
-/--+--\       []  |
-|     |       +---/
-[]    []      |
-\--+--/       V
-   |
-   V
-```
-====
-```
-fn call   sequential
-|            |
-\-->[]       |
-    /        |
-/--/         |
-|            |
-V            V
-```
-====
-```
-goto
- |
- \---> []
-```
-
-====
-
-- no idea if we will return there
-- *goto* makes it impossible to reason about
-
-====
-
-**Spoiler alert:** Dijkstra won
-
-- even languages with `goto` (C, C#, Golang) have tamed it
-- removal of goto allows new constructs to get spawned...
-
-====
-```python
-with foo:
-    do_stuff()
-```
-
-====
-- what would happen if we jumped out of the with block?
-- what if we jumped _inside_?
-====
-
-# go
-
-====
-
-- the `go` statement, also known as `pthread_create`, `spawn`, `threading.Thread`, `asyncio.create_task`, ...
-
-====
-```
-go
- |
- +---> []
- |
- V
-```
-====
-- It's a goto in disguise!
-- Hard to reason about (yes, I know about `join`)
-- Breaks error handling
-- Breaks abstraction
-====
-```python
-with open(some_file) as f:
-    asyncio.create_task(do_something(f))
-    ...
-```
-
-====
-Nathaniel J. Smith (2018): Go Statement Considered Harmful
-
-====
-```
-      nursery
-         |
-    /----+----\
-    |    |    |
-    []   []   []
-    |    |    |
-    \----+----/
-         |
-         V
-```
 ====
 
 ```python
-async with trio.open_nursery() as nursery:
-    nursery.start_soon(...)
+class Foo(metaclass=MetaFoo):
     ...
 ```
 
 ====
 
-- Tasks _have to_ run in nurseries* **
-- Tasks started in a nursery are done before the nursery is closed.
+```python
+Foo = MetaFoo("Foo", (), {})  # ...-ish
+```
 
 ====
 
-What if you have to start tasks dynamically?
+```python
+class Bar(Foo):
+    ...  # also has MetaFoo as metaclass
+```
+
+====
+
+Why?
+
+- Registering classes on class creation (!) time
+- Patching class body
+- Replacing class with different class?
+
+====
+
+# Class decorators
+
+- Can do _most_ of the things you can do with metaclasses
+- Explicit
+- IMHO almost always better solution than Metaclasses
+- Can not do _everything_ metaclasses can do
+
+====
+
+Excursion: Do metaclasses have to derive from type?
+
+====
+
+No; they don't even have to be classes!
+
+```exec
+def not_a_class(name, bases, namespace):
+    return lambda: "gotcha"
+
+class Foo(metaclass=not_a_class):
+    pass
+```
+
+====
+
+What if metaclasses aren't powerful enough?
+
+====
+
+*Warning: You are leaving the reasonable sector.*
+
+====
+
+Metaclasses require the class to declare them
+
+- Not very compatible with 3rd-party code
+- What if we want to play around with inheritance?
+
+====
+
+```python
+class Species:
+    def __init__(self, species):
+        self.species = species
+
+    def __str__(self):
+        return f"<Species: {self.species}>"
+
+cat = Species("Cat")
+```
+
+====
+
+```python
+class EgyptianMau(cat):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return f"<{self.__class__.__name__} ({self.species})>: {self.name}"
+```
+
+====
+
+This doesn't work, of course.
+
+You can't inherit from instances.
+
+====
+
+We can't really change that with metaclasses, because:
+
+- Either we would need to specify the metaclass-argument in the derived
+  class — not user-friendly.
+- Or we need to inherit from a _different_ class that has this metaclass,
+  but we want to inherit from `cat`.
+
+====
+
+Who calls the metaclass?
+
+====
+
+Surprisingly: Not C-code.
+
+====
+
+`builtins.__build_class__`
+
+====
+
+Called when `class` statement is executed.
+
+Signature: 〈body, name, *args, **kwargs〉
+
+`*args` usually bases, `**kwargs` usually nothing or only `metaclass=`.
+
+But we can change that!
 
 ====
 
 ```exec
-async def starter(nursery):
-    for i in range(7):
-        nursery.start_soon(sleepy, i)
-    print("starter done")
-
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(starter, nursery)
-    print("all done")
+import builtins
+old = builtins.__build_class__
+def bc(body, name, *args, **kwargs):
+    print("Defining", name)
+    if args and isinstance(args[0], str):
+        print(args[0])
+        args = args[1:]
+    return old(body, name, *args, **kwargs)
+builtins.__build_class__ = bc
 ```
 
 ====
 
-- `sleepy` tasks get attached to the nursery, not to `starter`
-- `starter` can quit, `main` can **not**
-
-====
-
-# cancellation
-
-====
-
-- tasks can be cancelled at any time*
-- example: timeouts
-
-====
-
-```exec
-async def main():
-    with trio.move_on_after(3):
-        async with trio.open_nursery() as nursery:
-            nursery.start_soon(sleepy, 10)
-    print("All done")
+```python
+def new(body, name, *args, **kwargs):
+    bases = args
+    weird = False
+    if any(not isinstance(base, type) for base in bases):
+        bases = [type(base) for base in bases]
+        weird = True
+    ret = old(body, name, *bases, **kwargs)
+    if weird:
+        for base in args:
+            for k, v in base.__dict__.items():
+                setattr(ret, k, v)
+    return ret
 ```
 
 ====
-
-- also possible: `trio.fail_after`, `trio.move_on_at`
-- also possible: nursery.cancel_scope.cancel()
-
-====
-
-- Cancellations raise an exception inside all child tasks
-- Cancellations are only possible at checkpoints
-
-====
-
-# checkpoints
-
-====
-
-- places in the code where tasks can get cancelled
-- places in the code where task switching happens
-
-====
-
-- any place where we `await` a "true" asynchronous function, i.e. any `await`ing of trio.something
-- Manually inserting a checkpoint: `await trio.sleep(0)`
-
-====
-
-# Synchronization
-
-====
-
-- `send, receive = trio.open_memory_channel(3)`
-- alternatives: `trio.Event`, `trio.CapacityLimiter`, `trio.Semaphore`, `trio.Lock`, ...
-
-====
-
-```exec
-async def sender(chan):
-    async with chan:
-        for i in range(3):
-            await chan.send(i)
-            print("sent", i)
-```
-====
-
-```exec
-async def receiver(chan):
-    async with chan:
-        async for msg in chan:
-            print("received", msg)
-```
-
-====
-
-```exec
-async def main():
-    async with trio.open_nursery() as nursery:
-        send, receive = trio.open_memory_channel(2)
-        nursery.start_soon(sender, send)
-        await trio.sleep(2)
-        nursery.start_soon(receiver, receive)
-```
-
-====
-
-# exceptions
-
-====
-
-- exceptions just work properly, and never get thrown away.
-- "simultanously" raised exceptions raise a `trio.MultiError`.
-
-====
-
-# DEMO
-
-====
-
-```exec
-async def handler(conn):
-    data = await conn.receive_some(1024)
-    await conn.send_all(data)
-
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(trio.serve_tcp, handler, 1234)
-```
-====
-
-```exec
-async def handler(conn):
-    while True:
-        data = await conn.receive_some(1024)
-        await conn.send_all(data)
-```
-```exechidden
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(trio.serve_tcp, handler, 1234)
-```
-====
-
-```exec
-async def handler(conn):
-    ip, port, *_ = conn.socket.getpeername()
-    print(f"[{ip}]:{port} opened connection")
-    while True:
-        data = await conn.receive_some(1024)
-        print(f"[{ip}]:{port} sent data")
-        await conn.send_all(data)
-```
-```exechidden
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(trio.serve_tcp, handler, 1234)
-```
-====
-
-```exec
-async def handler(conn):
-    ip, port, *_ = conn.socket.getpeername()
-    print(f"[{ip}]:{port} opened connection")
-    while True:
-        data = await conn.receive_some(1024)
-        if not data:  # ctrl-d
-            print(f"connection closed from [{ip}]:{port}, exiting")
-            return
-        print(f"[{ip}]:{port} sent data")
-        await conn.send_all(data)
-```
-```exechidden
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(trio.serve_tcp, handler, 1234)
-```
-====
-
-```exec
-async def handler(conn):
-    ip, port, *_ = conn.socket.getpeername()
-    print(f"[{ip}]:{port} opened connection")
-    while True:
-        with trio.move_on_after(5) as scope:
-            data = await conn.receive_some(1024)
-            if not data:  # ctrl-d
-                print(f"connection closed from [{ip}]:{port}, exiting")
-                return
-            print(f"[{ip}]:{port} sent data")
-            await conn.send_all(data)
-        if scope.cancelled_caught:
-            print(f"timeout for [{ip}]:{port}, exiting")
-            return
-```
-```exechidden
-async def main():
-    async with trio.open_nursery() as nursery:
-        nursery.start_soon(trio.serve_tcp, handler, 1234)
-```
-====
-
-# more
-
-- I/O: TCP, file system, sockets, subprocesses, signals
-- task-local storage (with `contextvars`)
-- thread support
-- `trio.testing`
-- `trio.hazmat`
-
-====
-
-- [https://vorpus.org/blog/]()
-- [https://trio.readthedocs.io]()
-
-====
-
-# fin

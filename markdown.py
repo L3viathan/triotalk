@@ -75,7 +75,10 @@ class TerminalRenderer(mistune.Renderer):
         self.columns = columns
 
     def list(self, body, ordered=True):
-        return body
+        items = body.split("\n")
+        if ordered:
+            items = ["{}. {}".format(i+1, item[2:]) for i, item in enumerate(items) if item]
+        return "\n".join(items) + "\n"
 
     def list_item(self, text):
         return "• {}\n".format(text)
@@ -118,6 +121,11 @@ class TerminalRenderer(mistune.Renderer):
 
     def codespan(self, text):
         return colorful.cyan(text)
+
+    def newline(self):
+        return "\n"
+
+    thematic_break = linebreak = newline
 
 
 renderer = TerminalRenderer()
